@@ -7,6 +7,18 @@ using namespace std;
 const int N_col = 10;
 const int N_fil = 10;
 
+// parte de un pequeño easter egg
+string usuario=""
+      ,contraseña="";
+
+void LimpiarConsola() { // esto lo ha hecho chat GPT porque no se como funciona esto en cpp, si me lo preguntas en python si porque identifica si el sistema es windows o cualquer otro para usar un comando o otro
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
 // Funcion para imprimir el tablero
 void PRINT_tablero(const string& titulo, const string tablero[N_col][N_fil]) {
     cout << titulo << endl;
@@ -135,29 +147,50 @@ void MostrarMenu() {
     cout << "Seleccione una opción: ";
 }
 
+void EasterEgg(){
+            cout << "Ingrese su nombre de usuario: ";
+            string usuario, contrasena;
+            cin >> usuario;
+            cout << "Ingrese su contraseña: ";
+            cin >> contrasena;
+
+
+            if ((usuario != "admin") && (contrasena != "admin"))
+            cout << "HEHEHE, no no no";
+
+            else
+            cout << "\nVideo Tutorial de como se ha hecho este juego";
+            system ("pause");
+            string link ="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab";
+            cout << link;
+            
+}
+
 void AdministrarMenu(string tablero1[N_col][N_fil], string tablero2[N_col][N_fil]) {
     int opcion;
     MostrarMenu();
     cin >> opcion;
 
     switch (opcion) {
-        case 1:
-            // Implementar las funciones de administrador
-            cout << "Accediendo a funciones de administrador..." << endl;
+        case 1: {
+            EasterEgg();
             break;
-        case 2:
+        }
+        case 2: {
             START_tablero(tablero1, "~ ");
             START_tablero(tablero2, "~ ");
             JugarTurnos(tablero1, tablero2);
             break;
-        case 3:
-            // Implementar la lógica para Jugador vs IA
+        }
+        case 3: {
             cout << "Modo Jugador vs IA aún no implementado." << endl;
             break;
-        default:
+        }
+        default: {
             cout << "Opción no válida. Intente de nuevo." << endl;
-            AdministrarMenu(tablero1, tablero2); // Llamada recursiva para opción inválida
+            AdministrarMenu(tablero1, tablero2); // Esto es por si el usuario ha puesto cualquier otra cosa no relacionada con el menu
             break;
+        }
     }
 }
 
@@ -165,6 +198,7 @@ int main() {
     string tablero1[N_col][N_fil];
     string tablero2[N_col][N_fil];
 
+    LimpiarConsola();
     AdministrarMenu(tablero1, tablero2);
 
     return 0;
