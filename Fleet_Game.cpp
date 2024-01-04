@@ -127,16 +127,45 @@ void JugarTurnos(string tablero1[N_col][N_fil], string tablero2[N_col][N_fil]) {
     }
 }
 
+void MostrarMenu() {
+    cout << "Bienvenido a FLEET_GAME" << endl;
+    cout << "1. Funciones de Administrador" << endl;
+    cout << "2. Jugador vs Jugador" << endl;
+    cout << "3. Jugador vs IA" << endl;
+    cout << "Seleccione una opción: ";
+}
+
+void AdministrarMenu(string tablero1[N_col][N_fil], string tablero2[N_col][N_fil]) {
+    int opcion;
+    MostrarMenu();
+    cin >> opcion;
+
+    switch (opcion) {
+        case 1:
+            // Implementar las funciones de administrador
+            cout << "Accediendo a funciones de administrador..." << endl;
+            break;
+        case 2:
+            START_tablero(tablero1, "~ ");
+            START_tablero(tablero2, "~ ");
+            JugarTurnos(tablero1, tablero2);
+            break;
+        case 3:
+            // Implementar la lógica para Jugador vs IA
+            cout << "Modo Jugador vs IA aún no implementado." << endl;
+            break;
+        default:
+            cout << "Opción no válida. Intente de nuevo." << endl;
+            AdministrarMenu(tablero1, tablero2); // Llamada recursiva para opción inválida
+            break;
+    }
+}
+
 int main() {
     string tablero1[N_col][N_fil];
-    START_tablero(tablero1, "~ ");
-    PRINT_tablero("TABLERO 1", tablero1);
-
     string tablero2[N_col][N_fil];
-    START_tablero(tablero2, "~ ");
-    PRINT_tablero("TABLERO 2", tablero2);
 
-    JugarTurnos(tablero1, tablero2);
+    AdministrarMenu(tablero1, tablero2);
 
     return 0;
 }
