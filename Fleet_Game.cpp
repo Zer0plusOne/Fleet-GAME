@@ -8,8 +8,8 @@
 
 using namespace std;
 
-const int N_col = 10;
-const int N_fil = 10;
+const int N_col = 10; // Se declaran como constantes ya que son valores los cuales no se han de retocar i/o modificar en ningun momento de la ejecucion del codigo
+const int N_fil = 10; // Se declaran como constantes ya que son valores los cuales no se han de retocar i/o modificar en ningun momento de la ejecucion del codigo
 
 // Función para imprimir el tablero
 void PRINT_tablero(const vector<vector<char>>& TABLERO) { // indicamos la constante (para que la funcion no pueda modificarla de ninguna manera) vector como vector de vectores en la matriz
@@ -21,7 +21,7 @@ void PRINT_tablero(const vector<vector<char>>& TABLERO) { // indicamos la consta
     }
 }
 
-// Función para inicializar el tablero
+// Función para inicializar el tablero (poner los caracteres de "agua")
 void START_tablero(vector<vector<char>>& TABLERO) { // lo mismo del print pero esta vez no declaramos la constante ya que mas tarde ha de ser modificado dentro de la funcion
     for (int h = 0; h < N_fil; ++h) {
         for (int w = 0; w < N_col; ++w) {
@@ -33,108 +33,85 @@ void START_tablero(vector<vector<char>>& TABLERO) { // lo mismo del print pero e
 // Función para colocar un barco en el tablero
 bool COLOCAR_barcos(vector<vector<char>>& TABLERO, int SIZE_barco) {
     int direction = rand() % 2; // 0 para horizontal, 1 para vertical y se genera el valor aleatoriamente, el %2 hace que el valor sea menor al 2 excluyendo al mismo (valores negativos excluidos)
-    int fil, col;
+    int fila, col;
 
     if (direction == 0) { // CASO HORIZONTAL
-        fil = rand() % N_fil;
+        fila = rand() % N_fil;
         col = rand() % (N_col - SIZE_barco + 1); // ```rand() % (N_col - SIZE_barco + 1)``` es lo que hace que los barcos vayan en las COLUMNAS para hacerlo HORIZONTAL en este caso
 
         for (int i = 0; i < SIZE_barco; ++i) {
-            if (TABLERO[fil][col + i] != '~') {
+            if (TABLERO[fila][col + i] != '~')
+            {
                 return false; // No se puede colocar el barco aquí
             }
         }
 
         for (int i = 0; i < SIZE_barco; ++i) {
-            TABLERO[fil][col + i] = '0' + SIZE_barco; // Coloca el barco
+            TABLERO[fila][col + i] = '0' + SIZE_barco; // Coloca el barco
         }
-    } else { // CASO VERTICAL
-        fil = rand() % (N_fil - SIZE_barco + 1);//```rand() % (N_col - SIZE_barco + 1)``` es lo que hace que los barcos vayan en las FILAS para hacerlo VERTICAL en este caso
+    }
+    else { // CASO VERTICAL
+        fila = rand() % (N_fil - SIZE_barco + 1);// ```rand() % (N_col - SIZE_barco + 1)``` es lo que hace que los barcos vayan en las FILAS para hacerlo VERTICAL en este caso
         col = rand() % N_col;
 
         for (int i = 0; i < SIZE_barco; ++i) {
-            if (TABLERO[fil + i][col] != '~') {
+            if (TABLERO[fila + i][col] != '~') {
                 return false; // No se puede colocar el barco aquí
             }
         }
 
         for (int i = 0; i < SIZE_barco; ++i) {
-            TABLERO[fil + i][col] = '0' + SIZE_barco; // Coloca el barco
+            TABLERO[fila + i][col] = '0' + SIZE_barco; // Coloca el barco
         }
     }
     return true;
 }
 
-void camuflarBarcos(vector<vector<char>>& TABLERO) {
-    for (int h = 0; h < N_fil; ++h) {
-        for (int w = 0; w < N_col; ++w) {
-            if (TABLERO[h][w] != '~') { // Si no es agua
-                TABLERO[h][w] = '~'; // Cambia a agua
-            }
-        }
-    }
-}
-
-bool ATACAR(vector<vector<char>>& TABLERO, int fila, int columna) {
-    if (TABLERO[fila][columna] != '~' && TABLERO[fila][columna] != 'O' && TABLERO[fila][columna] != 'X') {
-        TABLERO[fila][columna] = 'X'; // Marcar acierto
-        return true;
-    } else {
-        TABLERO[fila][columna] = 'O'; // Marcar fallo
-        return false;
-    }
-}
-
-void PEDIR_coordenadas(int& fila, int& columna) {
-    cout << "Ingresa fila y columna: ";
-    cin >> fila >> columna;
-}
-
 int main() {
     srand(time(NULL)); // Semilla para los números aleatorios
 
-    vector<vector<char>> TABLERO1(N_fil, vector<char>(N_col));
-    vector<vector<char>> TABLERO2(N_fil, vector<char>(N_col));
+    vector<vector<char>> TABLERO1(N_fil, vector<char>(N_col));  //Creacion de los tableros donde se muestran los barcos de ambos jugadores
+    vector<vector<char>> TABLERO2(N_fil, vector<char>(N_col));  //Creacion de los tableros donde se muestran los barcos de ambos jugadores
+    vector<vector<char>> TABLERO1_ataque(N_fil, vector<char>(N_col));   //Creacion de los tableros donde interactuaran los jugadores
+    vector<vector<char>> TABLERO2_ataque(N_fil, vector<char>(N_col));   //Creacion de los tableros donde interactuaran los jugadores
 
     START_tablero(TABLERO1);
     START_tablero(TABLERO2);
 
+    START_tablero(TABLERO1_ataque);
+    START_tablero(TABLERO2_ataque);
+
     // Intenta colocar los barcos de diferentes tamaños en cada tablero
-    int TAMAÑO_barcos[] = {3, 4, 5, 6}; // Decalramos el array de los tamaños para despues se utilice el listado ordenado para ser llamado en COLOCAR_barcos
+    int TAMAÑO_barcos[] = { 3, 4, 5, 6 }; // Decalramos el array de los tamaños para despues se utilice el listado ordenado para ser llamado en COLOCAR_barcos
 
     for (int size : TAMAÑO_barcos) {
         while (!COLOCAR_barcos(TABLERO1, size)); // Coloca cada barco en el tablero 1, el COLOCAR_barcos al ser bool indicamos que mientras siga en false con "!" coloque
         while (!COLOCAR_barcos(TABLERO2, size)); // Coloca cada barco en el tablero 2, el COLOCAR_barcos al ser bool indicamos que mientras siga en false con "!" coloque
     }
-        // Imprime los tableros con los barcos colocados
+    // Imprime los tableros con los barcos colocados
     cout << "Tablero jugador 1" << endl;
     PRINT_tablero(TABLERO1);
     cout << "\nTablero jugador 2" << endl; // el /n se usa para que haya espacio entre el tablero n1 y el titulo de el tablero n2
     PRINT_tablero(TABLERO2);
-    cout<<"\n"<<endl;
+    cout << "\n" << endl;
 
 
-    this_thread::sleep_for(chrono::seconds(10));
-
-    // Camuflar los barcos
-    camuflarBarcos(TABLERO1);
-    camuflarBarcos(TABLERO2);
+    this_thread::sleep_for(chrono::seconds(10)); // esto lo ha dicho chatGPt (profe porfabor es solo un timeout <3)
 
     // Detectaremos el sistema operativo y haremos el clear correspondiente (Chat GPT ha ayudado a esto, no tenia ni idea que esto era posible en cpp)
-    #ifdef _WIN32
+#ifdef _WIN32
     system("cls"); // Si es Windows, usa cls
-    #else
-    system("clear"); // En cualquier otro caso (Unix, Linux, macOS), usa clear
-    #endif
+#else
+    system("clear"); // En cualquier otro caso (Linux DISTROS, macOS), usa clear
+#endif
 
-    // Vuelve a imprimir los tableros con los barcos camuflados pasados esos 10 segundos
+    // 
+    START_tablero(TABLERO1_ataque);
+    START_tablero(TABLERO2_ataque);
+
     cout << "Tablero jugador 1" << endl;
-    PRINT_tablero(TABLERO1);
-    cout << "\nTablero jugador 2" << endl;
-    PRINT_tablero(TABLERO2);
-    
-    int fila, columna;
-    bool acierto;
-    bool juegoTerminado = false; // Mientras esto se mantenga en FALSE no terminara la partida
-
- 
+    PRINT_tablero(TABLERO1_ataque);
+    cout << "\nTablero jugador 2" << endl; // el /n se usa para que haya espacio entre el tablero n1 y el titulo de el tablero n2
+    PRINT_tablero(TABLERO2_ataque);
+    cout << "\n" << endl;
+};
