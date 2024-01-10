@@ -1,205 +1,140 @@
-#include <iostream>
+#include <iostream> 
 #include <string>
-#include <cstdlib> // Para poder utilizar valores aleatorios con srand o rand
-#include <ctime>   // Para poder hacer un random distinto cada vez que se juege el juego (sino saldra siempre la misma combinacion de barcos) [segun lo que dijiste en clase o eso entendi]
+#include <chrono> // para poder camuflar los barcos a los 5 segundos
+#include <thread> // para poder camuflar los barcos
+#include <vector> // Utilizare la libreria vector para almacenar los barcos como matrices de tamaño dinamico.
+#include <cstdlib> // Libreria que contiene los comandos para la generacion de valores aleatorios. En este caso rand y srand
+#include <ctime> // Esta libreria la usare para las semillas a la hora de la generacion de valores aleatorios
+
 using namespace std;
 
 const int N_col = 10;
 const int N_fil = 10;
 
-// parte de un pequeño easter egg
-string usuario=""
-      ,contraseña="";
-
-void LimpiarConsola() { // esto lo ha hecho chat GPT porque no se como funciona esto en cpp, si me lo preguntas en python si porque identifica si el sistema es windows o cualquer otro para usar un comando o otro
-    #ifdef _WIN32
-        system("cls");
-    #else
-        system("clear");
-    #endif
+// Función para imprimir el tablero
+void PRINT_tablero(const vector<vector<char>>& TABLERO) { // indicamos la constante (para que la funcion no pueda modificarla de ninguna manera) vector como vector de vectores en la matriz
+    for (int h = 0; h < N_fil; ++h) { // h para height y lo incrementa hasta llegar al valor de la constante
+        for (int w = 0; w < N_col; ++w) { // w para width y lo incrementa hasta llegar al valor de la constante
+            cout << TABLERO[h][w] << " ";
+        }
+        cout << endl; // el salto de linia despues de la generacion de cada uno
+    }
 }
 
-// Funcion para imprimir el tablero
-void PRINT_tablero(const string& titulo, const string tablero[N_col][N_fil]) {
-    cout << titulo << endl;
-
-    // Imprimir los números de columna
-    cout << "   "; // Espacios para alinear con las filas
-    for (int j = 1; j <= N_col; j++) {
-        cout << j << " ";
-    }
-    cout << endl;
-
-    for (int i = 0; i < N_fil; i++) {
-        // Imprimir el número de fila
-        cout << i + 1 << " ";
-        if (i < 9) cout << " "; // Añadir un espacio extra para alinearlo y que quede gucci
-
-        for (int j = 0; j < N_col; j++) {
-            cout << tablero[i][j];
+// Función para inicializar el tablero
+void START_tablero(vector<vector<char>>& TABLERO) { // lo mismo del print pero esta vez no declaramos la constante ya que mas tarde ha de ser modificado dentro de la funcion
+    for (int h = 0; h < N_fil; ++h) {
+        for (int w = 0; w < N_col; ++w) {
+            TABLERO[h][w] = '~';
         }
-        cout << endl;
     }
-    cout << endl;  // Dejamos una línea vacía al final del tablero la cual no cuenta dentro del tablero y sirve para dar espacio al imput del usuario
 }
 
-bool ESPACIO_disponible(const string tablero[N_col][N_fil], int fila, int columna, int tamano, bool horizontal) {
-    // Verifica si hay espacio para colocar el barco
-    if (horizontal) {
-        if (columna + tamano > N_col) return false; // Comprueba límites del tablero
-        for (int j = columna; j < columna + tamano; j++) {
-            if (tablero[fila][j] != "~ ") return false; // Comprueba si la celda está ocupada
+// Función para colocar un barco en el tablero
+bool COLOCAR_barcos(vector<vector<char>>& TABLERO, int SIZE_barco) {
+    int direction = rand() % 2; // 0 para horizontal, 1 para vertical y se genera el valor aleatoriamente, el %2 hace que el valor sea menor al 2 excluyendo al mismo (valores negativos excluidos)
+    int fil, col;
+
+    if (direction == 0) { // CASO HORIZONTAL
+        fil = rand() % N_fil;
+        col = rand() % (N_col - SIZE_barco + 1); // ```rand() % (N_col - SIZE_barco + 1)``` es lo que hace que los barcos vayan en las COLUMNAS para hacerlo HORIZONTAL en este caso
+
+        for (int i = 0; i < SIZE_barco; ++i) {
+            if (TABLERO[fil][col + i] != '~') {
+                return false; // No se puede colocar el barco aquí
+            }
         }
-    } else {
-        if (fila + tamano > N_fil) return false; // Comprueba límites del tablero
-        for (int i = fila; i < fila + tamano; i++) {
-            if (tablero[i][columna] != "~ ") return false; // Comprueba si la celda está ocupada
+
+        for (int i = 0; i < SIZE_barco; ++i) {
+            TABLERO[fil][col + i] = '0' + SIZE_barco; // Coloca el barco
+        }
+    } else { // CASO VERTICAL
+        fil = rand() % (N_fil - SIZE_barco + 1);//```rand() % (N_col - SIZE_barco + 1)``` es lo que hace que los barcos vayan en las FILAS para hacerlo VERTICAL en este caso
+        col = rand() % N_col;
+
+        for (int i = 0; i < SIZE_barco; ++i) {
+            if (TABLERO[fil + i][col] != '~') {
+                return false; // No se puede colocar el barco aquí
+            }
+        }
+
+        for (int i = 0; i < SIZE_barco; ++i) {
+            TABLERO[fil + i][col] = '0' + SIZE_barco; // Coloca el barco
         }
     }
     return true;
 }
 
-// Funcion para la colocacion de los barcos en el tablero
-void COLOCAR_barco(string tablero[N_col][N_fil], int tamano) {
-    bool colocado = false; // Lo declaro como false para realizar la comprovacion
-    while (!colocado) { // la ! indica que colocado sigue en false por eso utilizo un bucle de tipo while
-        int fila = rand() % N_fil;
-        int columna = rand() % N_col;
-        bool horizontal = rand() % 2; // 0 o 1, para decidir si el varco va en horizontal (1) o vertical (0) se utiliza %2 para indicar que es un numero menor a el indicado y no puede ser el propio valor
-
-        if (ESPACIO_disponible(tablero, fila, columna, tamano, horizontal)) {
-            for (int i = 0; i < tamano; i++) {
-                if (horizontal) {
-                    tablero[fila][columna + i] = "+ "; // "+" representa un barco
-                } else {
-                    tablero[fila + i][columna] = "+ ";
-                }
+void camuflarBarcos(vector<vector<char>>& TABLERO) {
+    for (int h = 0; h < N_fil; ++h) {
+        for (int w = 0; w < N_col; ++w) {
+            if (TABLERO[h][w] != '~') { // Si no es agua
+                TABLERO[h][w] = '~'; // Cambia a agua
             }
-            colocado = true;
         }
     }
 }
 
-void COLOCAR_barcos(string tablero[N_col][N_fil]) {
-    srand(time(0)); // Srand generara los valores aleatorios para las ubicaciones de los barcos segun el tiempo
-    // Definimos las dimensiones de los barcos
-    COLOCAR_barco(tablero, 3);
-    COLOCAR_barco(tablero, 4);
-    COLOCAR_barco(tablero, 5);
-    COLOCAR_barco(tablero, 6);
-} //no me preguntes mucho el formato para esto, lo ha explicado un tipo en stackoverflow
-
-
-// Asignamos un caracter para el tablero y colocamos los barcos
-void START_tablero(string tablero[N_col][N_fil], const string& caracter) {
-    for (int i = 0; i < N_fil; i++) {
-        for (int j = 0; j < N_col; j++) {
-            tablero[i][j] = caracter;
-        }
-    }
-    COLOCAR_barcos(tablero); // Una vez el tablero esta iniciado, colocamos los barcos
-}
-
-void Seleccionar_coordenadas(string tablero[N_col][N_fil]) {
-    int fila, columna;
-
-    cout << "Ingrese la fila (1-" << N_fil << "): ";
-    cin >> fila;
-    fila--; // Ajuste del array para que el 0-0 sea el 1-1
-
-    cout << "Ingrese la columna (1-" << N_col << "): ";
-    cin >> columna;
-    columna--; // Ajuste del array para que el 0-0 sea el 1-1
-
-    if (fila >= 0 && fila < N_fil && columna >= 0 && columna < N_col) {
-        tablero[fila][columna] = "X "; // Casilla seleccionada
-    }
-    else { // Error: Coordenadas fuera de rango
-        cout << "Apunta bien desgracia humana" << endl;
+bool ATACAR(vector<vector<char>>& TABLERO, int fila, int columna) {
+    if (TABLERO[fila][columna] != '~' && TABLERO[fila][columna] != 'O' && TABLERO[fila][columna] != 'X') {
+        TABLERO[fila][columna] = 'X'; // Marcar acierto
+        return true;
+    } else {
+        TABLERO[fila][columna] = 'O'; // Marcar fallo
+        return false;
     }
 }
 
-void JugarTurnos(string tablero1[N_col][N_fil], string tablero2[N_col][N_fil]) {
-    bool finDelJuego = false;
-    while (!finDelJuego) {
-
-        // Turno del jugador 1
-        Seleccionar_coordenadas(tablero1);
-        PRINT_tablero("TABLERO 1 ACTUALIZADO", tablero1);
-
-        // Comprobar condición de salida
-
-        if (finDelJuego) break;
-
-        // Turno del jugador 2
-        Seleccionar_coordenadas(tablero2);
-        PRINT_tablero("TABLERO 2 ACTUALIZADO", tablero2);
-
-        // Comprobar condición de salida
-    }
-}
-
-void MostrarMenu() {
-    cout << "Bienvenido a FLEET_GAME" << endl;
-    cout << "1. Funciones de Administrador" << endl;
-    cout << "2. Jugador vs Jugador" << endl;
-    cout << "3. Jugador vs IA" << endl;
-    cout << "Seleccione una opción: ";
-}
-
-void EasterEgg(){
-            cout << "Ingrese su nombre de usuario: ";
-            string usuario, contrasena;
-            cin >> usuario;
-            cout << "Ingrese su contraseña: ";
-            cin >> contrasena;
-
-
-            if ((usuario != "admin") && (contrasena != "admin"))
-            cout << "HEHEHE, no no no";
-
-            else
-            cout << "\nVideo Tutorial de como se ha hecho este juego";
-            system ("pause");
-            string link ="https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab";
-            cout << link;
-            
-}
-
-void AdministrarMenu(string tablero1[N_col][N_fil], string tablero2[N_col][N_fil]) {
-    int opcion;
-    MostrarMenu();
-    cin >> opcion;
-
-    switch (opcion) {
-        case 1: {
-            EasterEgg();
-            break;
-        }
-        case 2: {
-            START_tablero(tablero1, "~ ");
-            START_tablero(tablero2, "~ ");
-            JugarTurnos(tablero1, tablero2);
-            break;
-        }
-        case 3: {
-            cout << "Modo Jugador vs IA aún no implementado." << endl;
-            break;
-        }
-        default: {
-            cout << "Opción no válida. Intente de nuevo." << endl;
-            AdministrarMenu(tablero1, tablero2); // Esto es por si el usuario ha puesto cualquier otra cosa no relacionada con el menu
-            break;
-        }
-    }
+void PEDIR_coordenadas(int& fila, int& columna) {
+    cout << "Ingresa fila y columna: ";
+    cin >> fila >> columna;
 }
 
 int main() {
-    string tablero1[N_col][N_fil];
-    string tablero2[N_col][N_fil];
+    srand(time(NULL)); // Semilla para los números aleatorios
 
-    LimpiarConsola();
-    AdministrarMenu(tablero1, tablero2);
+    vector<vector<char>> TABLERO1(N_fil, vector<char>(N_col));
+    vector<vector<char>> TABLERO2(N_fil, vector<char>(N_col));
 
-    return 0;
-}
+    START_tablero(TABLERO1);
+    START_tablero(TABLERO2);
+
+    // Intenta colocar los barcos de diferentes tamaños en cada tablero
+    int TAMAÑO_barcos[] = {3, 4, 5, 6}; // Decalramos el array de los tamaños para despues se utilice el listado ordenado para ser llamado en COLOCAR_barcos
+
+    for (int size : TAMAÑO_barcos) {
+        while (!COLOCAR_barcos(TABLERO1, size)); // Coloca cada barco en el tablero 1, el COLOCAR_barcos al ser bool indicamos que mientras siga en false con "!" coloque
+        while (!COLOCAR_barcos(TABLERO2, size)); // Coloca cada barco en el tablero 2, el COLOCAR_barcos al ser bool indicamos que mientras siga en false con "!" coloque
+    }
+        // Imprime los tableros con los barcos colocados
+    cout << "Tablero jugador 1" << endl;
+    PRINT_tablero(TABLERO1);
+    cout << "\nTablero jugador 2" << endl; // el /n se usa para que haya espacio entre el tablero n1 y el titulo de el tablero n2
+    PRINT_tablero(TABLERO2);
+    cout<<"\n"<<endl;
+
+
+    this_thread::sleep_for(chrono::seconds(10));
+
+    // Camuflar los barcos
+    camuflarBarcos(TABLERO1);
+    camuflarBarcos(TABLERO2);
+
+    // Detectaremos el sistema operativo y haremos el clear correspondiente (Chat GPT ha ayudado a esto, no tenia ni idea que esto era posible en cpp)
+    #ifdef _WIN32
+    system("cls"); // Si es Windows, usa cls
+    #else
+    system("clear"); // En cualquier otro caso (Unix, Linux, macOS), usa clear
+    #endif
+
+    // Vuelve a imprimir los tableros con los barcos camuflados pasados esos 10 segundos
+    cout << "Tablero jugador 1" << endl;
+    PRINT_tablero(TABLERO1);
+    cout << "\nTablero jugador 2" << endl;
+    PRINT_tablero(TABLERO2);
+    
+    int fila, columna;
+    bool acierto;
+    bool juegoTerminado = false; // Mientras esto se mantenga en FALSE no terminara la partida
+
+ 
