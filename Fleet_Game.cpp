@@ -1,11 +1,3 @@
-#include <iostream> 
-#include <string>
-#include <chrono> // para poder camuflar los barcos a los 5 segundos
-#include <thread> // para poder camuflar los barcos
-#include <vector> // Utilizare la libreria vector para almacenar los barcos como matrices de tamaño dinamico.
-#include <cstdlib> // Libreria que contiene los comandos para la generacion de valores aleatorios. En este caso rand y srand
-#include <ctime> // Esta libreria la usare para las semillas a la hora de la generacion de valores aleatorios
-
 using namespace std;
 
 const int N_col = 10; // Se declaran como constantes ya que son valores los cuales no se han de retocar i/o modificar en ningun momento de la ejecucion del codigo
@@ -67,6 +59,19 @@ bool COLOCAR_barcos(vector<vector<char>>& TABLERO, int SIZE_barco) {
     return true;
 }
 
+bool ATAQUE(vector<vector<char>>& TABLERO, vector<vector<char>>& TABLERO_ataque, int fila, int columna) {
+    if (TABLERO[fila][columna] != '~') {
+        // Hay un barco, marca con una 'X' y devuelve true.
+        TABLERO_ataque[fila][columna] = 'X';
+        return true;
+    }
+    else {
+        // No hay barco, marca con una 'O' y devuelve false.
+        TABLERO_ataque[fila][columna] = 'O';
+        return false;
+    }
+}
+
 int main() {
     srand(time(NULL)); // Semilla para los números aleatorios
 
@@ -114,4 +119,66 @@ int main() {
     cout << "\nTablero jugador 2" << endl; // el /n se usa para que haya espacio entre el tablero n1 y el titulo de el tablero n2
     PRINT_tablero(TABLERO2_ataque);
     cout << "\n" << endl;
+
+    bool TURNO_jugador1 = true; // Se usara el valor de este boolean como interruptor (switch) entre turnos de JUGADOR1 y JUGADOR2
+
+    int PUNTUACION_jugador1 = 0; // las puntuaciones se utilizaran para poder finalizar la partida en caso de que el jugador alcance el maximo posible (15) 
+    int PUNTUACION_jugador2 = 0;
+
+    int fila, columna;
+    while (true) { // Bucle del juego (podrías tener una condición de salida)
+        cout << (TURNO_jugador1 ? "Turno del Jugador 1" : "Turno del Jugador 2") << endl; // se utilizan los ":" para ir alternando el mensaje segun si es TRUE o FALSE
+        cout << "Ingresa fila y columna para atacar: (Fila [ESPACIO] Columna) ";
+        cin >> fila >> columna;
+
+        fila--;
+        columna--;
+        
+        if (fila < 0 || fila >= N_fil || columna < 0 || columna >= N_col) {
+            cout << "Apunta dentro del tablero listillo" << endl;
+            continue; // Vuelve al inicio del bucle para pedir de nuevo las coordenadas ya que el usuario no sabe apuntar
+
+            // Al volver al inicio del bucle volvera a pedir al jugador que le toca ingresar las coordenadas (NO SALTA EL TURNO), por eso el uso de un boolean para el runo del jugador
+        }
+
+        // Verifica la validez de las entradas aquí...
+
+        if (TURNO_jugador1) {
+            if (ATAQUE(TABLERO2, TABLERO1_ataque, fila, columna)) { // se hace intercalando los tableros y el tablero de ataque para que los jugadores no ataquen sus propios tableros
+                cout << "TOCADO" << endl;
+                PUNTUACION_jugador1++;
+            }
+            else {
+                cout << "MANCO, apunta mejor" << endl;
+            }
+        }
+        else {
+            if (ATAQUE(TABLERO1, TABLERO2_ataque, fila, columna)) {
+                cout << "TOCADO" << endl;
+                PUNTUACION_jugador2++;
+            }
+            else {
+                cout << "MANCO, apunta mejor" << endl;
+            }
+        }
+        // Verificamos si los jugadores han llegado a la puntuacion maxima para terminar la partida
+
+        if (PUNTUACION_jugador1 == 15){
+            cout << "JUGADOR 1 GANA LA PARTIDA  *MUSICA EPICA*" << endl;
+            this_thread::sleep_for(chrono::seconds(2));
+            exit(0); // utilizo el code "0" ya que no es ningun error que esto ocurra, al contrario, indica que el codigo ha funcionado correctamente en todo momento hasta finalizar la partida 
+        }
+
+        if (PUNTUACION_jugador2 == 15) {
+            cout << "JUGADOR 2 GANA LA PARTIDA  *MUSICA EPICA*" << endl;
+            this_thread::sleep_for(chrono::seconds(2));
+            exit(0); // lo mismo que arriba
+        }
+
+        PRINT_tablero(TURNO_jugador1 ? TABLERO1_ataque : TABLERO2_ataque); // Para imprimir los tableros al final de cada jugada con los cambios necesarios
+
+        // Cambia el turno (no se necesita especificar que es del jugador 2 en el codigo ya que el valor "FALSE" del boolean "TURNO_jugador1" se entiende como "TURNO_jugador2")
+        TURNO_jugador1 = !TURNO_jugador1;
+    }
+    return 0;
 };
