@@ -1,3 +1,25 @@
+#include <iostream> 
+#include <string>
+#include <chrono> // para poder camuflar los barcos a los 5 segundos
+#include <thread> // para poder camuflar los barcos
+#include <vector> // Utilizare la libreria vector para almacenar los barcos como matrices de tamaño dinamico.
+#include <cstdlib> // Libreria que contiene los comandos para la generacion de valores aleatorios. En este caso rand y srand
+#include <ctime> // Esta libreria la usare para las semillas a la hora de la generacion de valores aleatorios
+
+/* en esta seccion que voy a marcar me voy a permitir colocar un arte ascii para que la imrima en la pantalla al iniciar el juego */
+
+/*
+    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+    ██░▄▄▄██░█████░▄▄▄██░▄▄▄█▄▄░▄▄█████░▄▄░█░▄▄▀██░▄▀▄░██░▄▄▄█
+    ██░▄▄███░█████░▄▄▄██░▄▄▄███░███▀▀██░█▀▀█░▀▀░██░█░█░██░▄▄▄█
+    ██░█████░▀▀░██░▀▀▀██░▀▀▀███░███▄▄██░▀▀▄█░██░██░███░██░▀▀▀█
+    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+    By: Guillermo Gómez Sánchez
+    Github: github.com/Zer0plusOne
+*/
+
+/*---------------------------------------------- INICIO DEL CODIGO PRINCIPAL DEL JUEGO ----------------------------------------------*/
+
 using namespace std;
 
 const int N_col = 10; // Se declaran como constantes ya que son valores los cuales no se han de retocar i/o modificar en ningun momento de la ejecucion del codigo
@@ -73,6 +95,7 @@ bool ATAQUE(vector<vector<char>>& TABLERO, vector<vector<char>>& TABLERO_ataque,
 }
 
 int main() {
+
     srand(time(NULL)); // Semilla para los números aleatorios
 
     vector<vector<char>> TABLERO1(N_fil, vector<char>(N_col));  //Creacion de los tableros donde se muestran los barcos de ambos jugadores
